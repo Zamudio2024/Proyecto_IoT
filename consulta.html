@@ -8,15 +8,21 @@
   <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 </head>
+
 <body>
+
   <h1>Control y Registro de Invernadero</h1>
+
   <h2>Estado del LED:</h2>
   <p id="estadoLed">Cargando...</p>
+
   <h2>Valor del Potenciómetro:</h2>
   <p id="valorPotenciometro">Cargando...</p>
+
   <h2>Modificar Variable sP:</h2>
   <input type="number" id="nuevoValorSP" placeholder="Nuevo valor">
   <button onclick="actualizarVariableSP()">Actualizar sP</button>
+
   <h2>Registro de Datos</h2>
   <input type="date" id="fechaConsulta">
   <button onclick="consultarPorFecha()">Consultar por Fecha</button>
@@ -30,6 +36,7 @@
     </thead>
     <tbody id="tablaDatos"></tbody>
   </table>
+
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -41,10 +48,13 @@
       messagingSenderId: "28136162632",
       appId: "1:28136162632:web:a2693143d9e0075b731f7d"
     };
+
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+
     // Reference to the database
     const database = firebase.database();
+
     // References to the database nodes
     const ledRef = database.ref('Invernadero/Actuador/Led');
     const potenciometroRef = database.ref('Invernadero/Sensores/Potenciometro');
@@ -53,8 +63,7 @@
     const tablaDatos = document.getElementById('tablaDatos');
 
     // Cargar datos desde la base de datos al cargar la página
-    datosRef.on('value', (snapshot) => {
-      tablaDatos.innerHTML = ""; // Limpiar la tabla antes de volver a cargar los datos
+    datosRef.once('value', (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         const childData = childSnapshot.val();
         actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
@@ -67,11 +76,23 @@
     }
 
     function actualizarTabla(fecha, estadoLed, valorPotenciometro) {
-      // Agregar nueva fila
-      const fila = tablaDatos.insertRow();
-      fila.insertCell(0).innerText = fecha;
-      fila.insertCell(1).innerText = estadoLed;
-      fila.insertCell(2).innerText = valorPotenciometro;
+      const fila = `<tr>
+        <td>${fecha}</td>
+        <td>${estadoLed}</td>
+        <td>${valorPotenciometro}</td>
+      </tr>`;
+
+      tablaDatos.innerHTML += fila;
+
+      // Guardar datos en localStorage
+      guardarDatosEnLocalStorage();
+
+      // Guardar datos en la base de datos
+      datosRef.push({
+        fecha: fecha,
+        estadoLed: estadoLed,
+        valorPotenciometro: valorPotenciometro
+      });
     }
 
     function actualizarVariableSP() {
@@ -79,40 +100,66 @@
       variableSPRef.set(parseInt(nuevoValorSP, 10));
     }
 
-    // Escuchar cambios en el LED
-    ledRef.on('value', (snapshotLed) => {
-      const estadoLed = snapshotLed.val();
+    // Escuchar cambios en el LED y el potenciómetro
+    ledRef.on('value', (snapshot) => {
+      const estadoLed = snapshot.val();
       document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
-      const fechaActual = obtenerFechaActual();
-
-      // Guardar datos en Firebase
-      datosRef.push({
-        fecha: fechaActual,
-        estadoLed: estadoLed,
-        valorPotenciometro: valorPotenciometro
-      });
     });
 
-    // Escuchar cambios en el potenciómetro
     potenciometroRef.on('value', (snapshot) => {
       const valorPotenciometro = snapshot.val();
       document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
+
+      // Obtener la fecha actual
       const fechaActual = obtenerFechaActual();
 
-      // Guardar datos en Firebase
-      datosRef.push({
-        fecha: fechaActual,
-        estadoLed: estadoLed,
-        valorPotenciometro: valorPotenciometro
+      // Obtener el estado del LED
+      ledRef.once('value', (snapshotLed) => {
+        const estadoLed = snapshotLed.val();
+
+        // Verificar si los nuevos datos son diferentes de los antiguos antes de actualizar la tabla
+        const ultimaFila = tablaDatos.querySelector('tr:last-child');
+        if (ultimaFila) {
+          const fechaAnterior = ultimaFila.querySelector('td:first-child').innerText;
+          const estadoLedAnterior = ultimaFila.querySelector('td:nth-child(2)').innerText;
+          const valorPotenciometroAnterior = ultimaFila.querySelector('td:nth-child(3)').innerText;
+
+          if (
+            fechaActual !== fechaAnterior ||
+            estadoLed !== estadoLedAnterior ||
+            valorPotenciometro !== valorPotenciometroAnterior
+          ) {
+            // Actualizar la tabla con los nuevos datos
+            actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+          }
+        } else {
+          // Si no hay filas en la tabla, actualizar la tabla con los nuevos datos
+          actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+        }
       });
     });
+
+    // Función para guardar datos en localStorage
+    function guardarDatosEnLocalStorage() {
+      const datosTabla = tablaDatos.innerHTML;
+      localStorage.setItem('datosTabla', datosTabla);
+    }
+
+    // Función para cargar datos desde localStorage al cargar la página
+    function cargarDatosDesdeLocalStorage() {
+      const datosTabla = localStorage.getItem('datosTabla');
+      if (datosTabla) {
+        tablaDatos.innerHTML = datosTabla;
+      }
+    }
 
     // Función para consultar por fecha
     function consultarPorFecha() {
       const fechaConsulta = document.getElementById('fechaConsulta').value;
       const filas = tablaDatos.querySelectorAll('tr');
+
       filas.forEach((fila) => {
-        const fechaFila = fila.cells[0].innerText;
+        const fechaFila = fila.querySelector('td:first-child').innerText;
         if (fechaFila.includes(fechaConsulta)) {
           fila.style.display = 'table-row';
         } else {
@@ -123,5 +170,4 @@
   </script>
 
 </body>
-</html> 
-
+</html>
