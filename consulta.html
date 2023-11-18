@@ -64,6 +64,9 @@
 
     // Cargar datos desde la base de datos al cargar la página
     datosRef.once('value', (snapshot) => {
+      // Limpiar contenido existente en la tabla
+      tablaDatos.innerHTML = '';
+
       snapshot.forEach((childSnapshot) => {
         const childData = childSnapshot.val();
         actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
@@ -100,75 +103,32 @@
       variableSPRef.set(parseInt(nuevoValorSP, 10));
     }
 
-    // Escuchar cambios en el LED y el potenciómetro
-    ledRef.on('value', (snapshot) => {
-      const estadoLed = snapshot.val();
+    // Escuchar cambios en el LED
+    ledRef.on('value', (snapshotLed) => {
+      const estadoLed = snapshotLed.val();
       document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
-    });
-
-    potenciometroRef.on('value', (snapshot) => {
-      const valorPotenciometro = snapshot.val();
-      document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
 
       // Obtener la fecha actual
       const fechaActual = obtenerFechaActual();
 
-      // Obtener el estado del LED
-      ledRef.once('value', (snapshotLed) => {
-        const estadoLed = snapshotLed.val();
-
-        // Verificar si los nuevos datos son diferentes de los antiguos antes de actualizar la tabla
-        const ultimaFila = tablaDatos.querySelector('tr:last-child');
-        if (ultimaFila) {
-          const fechaAnterior = ultimaFila.querySelector('td:first-child').innerText;
-          const estadoLedAnterior = ultimaFila.querySelector('td:nth-child(2)').innerText;
-          const valorPotenciometroAnterior = ultimaFila.querySelector('td:nth-child(3)').innerText;
-
-          if (
-            fechaActual !== fechaAnterior ||
-            estadoLed !== estadoLedAnterior ||
-            valorPotenciometro !== valorPotenciometroAnterior
-          ) {
-            // Actualizar la tabla con los nuevos datos
-            actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
-          }
-        } else {
-          // Si no hay filas en la tabla, actualizar la tabla con los nuevos datos
-          actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
-        }
+      // Obtener el valor del potenciómetro
+      potenciometroRef.once('value', (snapshotPot) => {
+        const valorPotenciometro = snapshotPot.val();
+        
+        // Actualizar la tabla con los nuevos datos
+        actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
       });
     });
 
-    // Función para guardar datos en localStorage
-    function guardarDatosEnLocalStorage() {
-      const datosTabla = tablaDatos.innerHTML;
-      localStorage.setItem('datosTabla', datosTabla);
-    }
+    // Escuchar cambios en el potenciómetro
+    potenciometroRef.on('value', (snapshot) => {
+      const valorPotenciometro = snapshot.val();
+      document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
+    });
 
-    // Función para cargar datos desde localStorage al cargar la página
-    function cargarDatosDesdeLocalStorage() {
-      const datosTabla = localStorage.getItem('datosTabla');
-      if (datosTabla) {
-        tablaDatos.innerHTML = datosTabla;
-      }
-    }
+    // Resto del código...
 
-    // Función para consultar por fecha
-    function consultarPorFecha() {
-      const fechaConsulta = document.getElementById('fechaConsulta').value;
-      const filas = tablaDatos.querySelectorAll('tr');
-
-      filas.forEach((fila) => {
-        const fechaFila = fila.querySelector('td:first-child').innerText;
-        if (fechaFila.includes(fechaConsulta)) {
-          fila.style.display = 'table-row';
-        } else {
-          fila.style.display = 'none';
-        }
-      });
-    }
-  </script>
+    </script>
 
 </body>
 </html>
-
