@@ -51,16 +51,19 @@
 
             snapshot.forEach((childSnapshot) => {
                 const fecha = childSnapshot.key;
-                const potenciometro = childSnapshot.child('Potenciometro').val() || 'N/A';
-                const led = childSnapshot.child('Actuador/Led').val() || 'N/A';
 
-                const fila = `<tr>
-                         <td>${fecha}</td>
-                         <td>${potenciometro}</td>
-                         <td>${led}</td>
-                      </tr>`;
+                childSnapshot.forEach((horaSnapshot) => {
+                    const potenciometro = horaSnapshot.child('Potenciometro').val() || 'N/A';
+                    const led = horaSnapshot.child('Actuador/Led').val() || 'N/A';
 
-                tablaDatos.innerHTML += fila;
+                    const fila = `<tr>
+                             <td>${fecha}</td>
+                             <td>${potenciometro}</td>
+                             <td>${led}</td>
+                          </tr>`;
+
+                    tablaDatos.innerHTML += fila;
+                });
             });
         });
 
@@ -71,16 +74,19 @@
 
             datosRef.child(fechaSeleccionada).on('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    const potenciometro = snapshot.child('Potenciometro').val() || 'N/A';
-                    const led = snapshot.child('Actuador/Led').val() || 'N/A';
+                    snapshot.forEach((horaSnapshot) => {
+                        const fecha = fechaSeleccionada; // Usar la fecha seleccionada del input
+                        const potenciometro = horaSnapshot.child('Potenciometro').val() || 'N/A';
+                        const led = horaSnapshot.child('Actuador/Led').val() || 'N/A';
 
-                    const fila = `<tr>
-                           <td>${fechaSeleccionada}</td>
+                        const fila = `<tr>
+                           <td>${fecha}</td>
                            <td>${potenciometro}</td>
                            <td>${led}</td>
                         </tr>`;
 
-                    tablaDatos.innerHTML += fila;
+                        tablaDatos.innerHTML += fila;
+                    });
                 } else {
                     alert('No hay datos disponibles para la fecha seleccionada.');
                 }
