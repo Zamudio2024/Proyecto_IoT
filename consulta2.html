@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Datos</title>
+</head>
+<body>
+
+<h1>Registro de Datos</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Potenciómetro</th>
+            <th>Estado del LED</th>
+        </tr>
+    </thead>
+    <tbody id="tabla-datos">
+        <!-- Aquí se llenarán los datos -->
+    </tbody>
+</table>
+
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+<script>
+    // Configurar Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
+      authDomain: "prueba-invernadero.firebaseapp.com",
+      databaseURL: "https://prueba-invernadero-default-rtdb.firebaseio.com",
+      projectId: "prueba-invernadero",
+      storageBucket: "prueba-invernadero.appspot.com",
+      messagingSenderId: "28136162632",
+      appId: "1:28136162632:web:a2693143d9e0075b731f7d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    // Obtener referencia a la base de datos
+    const database = firebase.database();
+
+    // Referencia a la sección de datos
+    const datosRef = database.ref('datos');
+
+    // Función para mostrar los datos en la tabla
+    function mostrarDatos(snapshot) {
+        const datos = snapshot.val();
+        const tablaDatos = document.getElementById('tabla-datos');
+
+        // Limpiar la tabla antes de agregar nuevos datos
+        tablaDatos.innerHTML = '';
+
+        // Iterar sobre los datos y agregar filas a la tabla
+        for (let key in datos) {
+            if (datos.hasOwnProperty(key)) {
+                const fila = document.createElement('tr');
+                const potenciometro = document.createElement('td');
+                const estadoLed = document.createElement('td');
+
+                potenciometro.textContent = datos[key].potenciometro;
+                estadoLed.textContent = datos[key].estadoLed;
+
+                fila.appendChild(potenciometro);
+                fila.appendChild(estadoLed);
+
+                tablaDatos.appendChild(fila);
+            }
+        }
+    }
+
+    // Escuchar cambios en los datos
+    datosRef.on('value', mostrarDatos);
+</script>
+
+</body>
+</html>
