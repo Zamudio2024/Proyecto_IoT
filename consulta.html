@@ -59,10 +59,16 @@
     const ledRef = database.ref('Invernadero/Actuador/Led');
     const potenciometroRef = database.ref('Invernadero/Sensores/Potenciometro');
     const variableSPRef = database.ref('Invernadero/Variable/sP');
+    const datosRef = database.ref('Invernadero/Datos');
     const tablaDatos = document.getElementById('tablaDatos');
 
-    // Cargar datos de localStorage al cargar la página
-    cargarDatosDesdeLocalStorage();
+    // Cargar datos desde la base de datos al cargar la página
+    datosRef.once('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        const childData = childSnapshot.val();
+        actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
+      });
+    });
 
     function obtenerFechaActual() {
       const fecha = new Date();
@@ -80,6 +86,13 @@
 
       // Guardar datos en localStorage
       guardarDatosEnLocalStorage();
+
+      // Guardar datos en la base de datos
+      datosRef.push({
+        fecha: fecha,
+        estadoLed: estadoLed,
+        valorPotenciometro: valorPotenciometro
+      });
     }
 
     function actualizarVariableSP() {
@@ -104,8 +117,25 @@
       ledRef.once('value', (snapshotLed) => {
         const estadoLed = snapshotLed.val();
 
-        // Actualizar la tabla con los nuevos datos
-        actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+        // Verificar si los nuevos datos son diferentes de los antiguos antes de actualizar la tabla
+        const ultimaFila = tablaDatos.querySelector('tr:last-child');
+        if (ultimaFila) {
+          const fechaAnterior = ultimaFila.querySelector('td:first-child').innerText;
+          const estadoLedAnterior = ultimaFila.querySelector('td:nth-child(2)').innerText;
+          const valorPotenciometroAnterior = ultimaFila.querySelector('td:nth-child(3)').innerText;
+
+          if (
+            fechaActual !== fechaAnterior ||
+            estadoLed !== estadoLedAnterior ||
+            valorPotenciometro !== valorPotenciometroAnterior
+          ) {
+            // Actualizar la tabla con los nuevos datos
+            actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+          }
+        } else {
+          // Si no hay filas en la tabla, actualizar la tabla con los nuevos datos
+          actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+        }
       });
     });
 
@@ -141,3 +171,4 @@
 
 </body>
 </html>
+
