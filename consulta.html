@@ -63,9 +63,13 @@
     const tablaDatos = document.getElementById('tablaDatos');
 
     // Cargar datos desde la base de datos al cargar la página
-    datosRef.on('child_added', (snapshot) => {
-      const childData = snapshot.val();
-      actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
+    datosRef.on('value', (snapshot) => {
+      // Limpiar la tabla antes de agregar nuevos datos
+      tablaDatos.innerHTML = "";
+      snapshot.forEach((childSnapshot) => {
+        const childData = childSnapshot.val();
+        actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
+      });
     });
 
     function obtenerFechaActual() {
@@ -108,14 +112,6 @@
       localStorage.setItem('datosTabla', datosTabla);
     }
 
-    // Función para cargar datos desde localStorage al cargar la página
-    function cargarDatosDesdeLocalStorage() {
-      const datosTabla = localStorage.getItem('datosTabla');
-      if (datosTabla) {
-        tablaDatos.innerHTML = datosTabla;
-      }
-    }
-
     // Función para consultar por fecha
     function consultarPorFecha() {
       const fechaConsulta = document.getElementById('fechaConsulta').value;
@@ -134,3 +130,4 @@
 
 </body>
 </html>
+
