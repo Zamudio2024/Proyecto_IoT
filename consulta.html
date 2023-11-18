@@ -63,11 +63,9 @@
     const tablaDatos = document.getElementById('tablaDatos');
 
     // Cargar datos desde la base de datos al cargar la página
-    datosRef.once('value', (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        const childData = childSnapshot.val();
-        actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
-      });
+    datosRef.on('child_added', (snapshot) => {
+      const childData = snapshot.val();
+      actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
     });
 
     function obtenerFechaActual() {
@@ -86,13 +84,6 @@
 
       // Guardar datos en localStorage
       guardarDatosEnLocalStorage();
-
-      // Guardar datos en la base de datos
-      datosRef.push({
-        fecha: fecha,
-        estadoLed: estadoLed,
-        valorPotenciometro: valorPotenciometro
-      });
     }
 
     function actualizarVariableSP() {
@@ -109,34 +100,6 @@
     potenciometroRef.on('value', (snapshot) => {
       const valorPotenciometro = snapshot.val();
       document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
-
-      // Obtener la fecha actual
-      const fechaActual = obtenerFechaActual();
-
-      // Obtener el estado del LED
-      ledRef.once('value', (snapshotLed) => {
-        const estadoLed = snapshotLed.val();
-
-        // Verificar si los nuevos datos son diferentes de los antiguos antes de actualizar la tabla
-        const ultimaFila = tablaDatos.querySelector('tr:last-child');
-        if (ultimaFila) {
-          const fechaAnterior = ultimaFila.querySelector('td:first-child').innerText;
-          const estadoLedAnterior = ultimaFila.querySelector('td:nth-child(2)').innerText;
-          const valorPotenciometroAnterior = ultimaFila.querySelector('td:nth-child(3)').innerText;
-
-          if (
-            fechaActual !== fechaAnterior ||
-            estadoLed !== estadoLedAnterior ||
-            valorPotenciometro !== valorPotenciometroAnterior
-          ) {
-            // Actualizar la tabla con los nuevos datos
-            actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
-          }
-        } else {
-          // Si no hay filas en la tabla, actualizar la tabla con los nuevos datos
-          actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
-        }
-      });
     });
 
     // Función para guardar datos en localStorage
