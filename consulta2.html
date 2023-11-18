@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Datos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control y Registro de Invernadero</title>
+  <!-- Utiliza la versión no modular de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 </head>
+
 <body>
 
-<h1>Registro de Datos</h1>
+  <h1>Control y Registro de Invernadero</h1>
 
-<table border="1">
+  <h2>Estado del LED:</h2>
+  <p id="estadoLed">Cargando...</p>
+
+  <h2>Valor del Potenciómetro:</h2>
+  <p id="valorPotenciometro">Cargando...</p>
+
+  <h2>Modificar Variable sP:</h2>
+  <input type="number" id="nuevoValorSP" placeholder="Nuevo valor">
+  <button onclick="actualizarVariableSP()">Actualizar sP</button>
+
+  <h2>Registro de Datos</h2>
+  <table border="1">
     <thead>
-        <tr>
-            <th>Potenciómetro</th>
-            <th>Estado del LED</th>
-        </tr>
+      <tr>
+        <th>Fecha</th>
+        <th>Estado del LED</th>
+        <th>Valor del Potenciómetro</th>
+      </tr>
     </thead>
-    <tbody id="tabla-datos">
-        <!-- Aquí se llenarán los datos -->
-    </tbody>
-</table>
+    <tbody id="tablaDatos"></tbody>
+  </table>
 
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-
-<script>
-    // Configurar Firebase
+  <script>
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
       authDomain: "prueba-invernadero.firebaseapp.com",
@@ -36,43 +47,56 @@
       appId: "1:28136162632:web:a2693143d9e0075b731f7d"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
-    // Obtener referencia a la base de datos
+    // Reference to the database
     const database = firebase.database();
 
-    // Referencia a la sección de datos
-    const datosRef = database.ref('datos');
+    // References to the database nodes
+    const ledRef = database.ref('Invernadero/Actuador/Led');
+    const potenciometroRef = database.ref('Invernadero/Sensores/Potenciometro');
+    const variableSPRef = database.ref('Invernadero/Variable/sP');
+    const tablaDatos = document.getElementById('tablaDatos');
 
-    // Función para mostrar los datos en la tabla
-    function mostrarDatos(snapshot) {
-        const datos = snapshot.val();
-        const tablaDatos = document.getElementById('tabla-datos');
-
-        // Limpiar la tabla antes de agregar nuevos datos
-        tablaDatos.innerHTML = '';
-
-        // Iterar sobre los datos y agregar filas a la tabla
-        for (let key in datos) {
-            if (datos.hasOwnProperty(key)) {
-                const fila = document.createElement('tr');
-                const potenciometro = document.createElement('td');
-                const estadoLed = document.createElement('td');
-
-                potenciometro.textContent = datos[key].potenciometro;
-                estadoLed.textContent = datos[key].estadoLed;
-
-                fila.appendChild(potenciometro);
-                fila.appendChild(estadoLed);
-
-                tablaDatos.appendChild(fila);
-            }
-        }
+    function obtenerFechaActual() {
+      const fecha = new Date();
+      return fecha.toISOString();
     }
 
-    // Escuchar cambios en los datos
-    datosRef.on('value', mostrarDatos);
-</script>
+    function actualizarTabla(fecha, estadoLed, valorPotenciometro) {
+      const fila = `<tr>
+        <td>${fecha}</td>
+        <td>${estadoLed}</td>
+        <td>${valorPotenciometro}</td>
+      </tr>`;
+
+      tablaDatos.innerHTML += fila;
+    }
+
+    function actualizarVariableSP() {
+      const nuevoValorSP = document.getElementById('nuevoValorSP').value;
+      variableSPRef.set(parseInt(nuevoValorSP, 10));
+    }
+
+    // Listen for changes in the LED state
+    ledRef.on('value', (snapshot) => {
+      const estadoLed = snapshot.val();
+      document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
+    });
+
+    // Listen for changes in the potentiometer value
+    potenciometroRef.on('value', (snapshot) => {
+      const valorPotenciometro = snapshot.val();
+      document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
+
+      // Obtener la fecha actual
+      const fechaActual = obtenerFechaActual();
+
+      // Actualizar la tabla con los nuevos datos
+      actualizarTabla(fechaActual, document.getElementById('estadoLed').innerText.split(': ')[1], valorPotenciometro);
+    });
+  </script>
 
 </body>
 </html>
