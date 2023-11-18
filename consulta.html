@@ -52,8 +52,6 @@
     const datosRef = database.ref('Invernadero/Datos');
     const tablaDatos = document.getElementById('tablaDatos');
 
-    // Cargar datos de localStorage al cargar la página
-    cargarDatosDesdeLocalStorage();
     // Cargar datos desde la base de datos al cargar la página
     datosRef.on('child_added', (snapshot) => {
       const childData = snapshot.val();
@@ -66,16 +64,22 @@
     }
 
     function actualizarTabla(fecha, estadoLed, valorPotenciometro) {
-      const fila = `<tr>
-        <td>${fecha}</td>
-        <td>${estadoLed}</td>
-        <td>${valorPotenciometro}</td>
-      </tr>`;
+      // Verificar si ya existe una fila con la misma fecha
+      const filaExistente = Array.from(tablaDatos.children).find((fila) =>
+        fila.cells[0].innerText === fecha
+      );
 
-      tablaDatos.innerHTML += fila;
-
-      // Guardar datos en localStorage
-      guardarDatosEnLocalStorage();
+      if (filaExistente) {
+        // Actualizar fila existente
+        filaExistente.cells[1].innerText = estadoLed;
+        filaExistente.cells[2].innerText = valorPotenciometro;
+      } else {
+        // Agregar nueva fila
+        const fila = tablaDatos.insertRow();
+        fila.insertCell(0).innerText = fecha;
+        fila.insertCell(1).innerText = estadoLed;
+        fila.insertCell(2).innerText = valorPotenciometro;
+      }
     }
 
     function actualizarVariableSP() {
@@ -87,34 +91,36 @@
     ledRef.on('value', (snapshotLed) => {
       const estadoLed = snapshotLed.val();
       document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
+      const fechaActual = obtenerFechaActual();
+
+      // Guardar datos en Firebase
+      datosRef.push({
+        fecha: fechaActual,
+        estadoLed: estadoLed,
+        valorPotenciometro: valorPotenciometro
+      });
     });
 
     // Escuchar cambios en el potenciómetro
     potenciometroRef.on('value', (snapshot) => {
       const valorPotenciometro = snapshot.val();
       document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
+      const fechaActual = obtenerFechaActual();
+
+      // Guardar datos en Firebase
+      datosRef.push({
+        fecha: fechaActual,
+        estadoLed: estadoLed,
+        valorPotenciometro: valorPotenciometro
+      });
     });
-
-    // Función para guardar datos en localStorage
-    function guardarDatosEnLocalStorage() {
-      const datosTabla = tablaDatos.innerHTML;
-      localStorage.setItem('datosTabla', datosTabla);
-    }
-
-    // Función para cargar datos desde localStorage al cargar la página
-    function cargarDatosDesdeLocalStorage() {
-      const datosTabla = localStorage.getItem('datosTabla');
-      if (datosTabla) {
-        tablaDatos.innerHTML = datosTabla;
-      }
-    }
 
     // Función para consultar por fecha
     function consultarPorFecha() {
       const fechaConsulta = document.getElementById('fechaConsulta').value;
       const filas = tablaDatos.querySelectorAll('tr');
       filas.forEach((fila) => {
-        const fechaFila = fila.querySelector('td:first-child').innerText;
+        const fechaFila = fila.cells[0].innerText;
         if (fechaFila.includes(fechaConsulta)) {
           fila.style.display = 'table-row';
         } else {
