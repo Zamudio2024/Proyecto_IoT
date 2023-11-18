@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control y Registro de Invernadero</title>
+  <title>Registro de Datos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Registro de Datos</h1>
+    <label for="fechaFiltro">Selecciona una fecha:</label>
+    <input type="date" id="fechaFiltro" onchange="filtrarPorFecha()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Potenciómetro</th>
+          <th>LED</th>
+        </tr>
+      </thead>
+      <tbody id="tablaDatos"></tbody>
+    </table>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-</head>
-
-<body>
-
-  <h1>Control y Registro de Invernadero</h1>
-
-  <h2>Estado del LED:</h2>
-  <p id="estadoLed">Cargando...</p>
-
-  <h2>Valor del Potenciómetro:</h2>
-  <p id="valorPotenciometro">Cargando...</p>
-
-  <h2>Modificar Variable sP:</h2>
-  <input type="number" id="nuevoValorSP" placeholder="Nuevo valor">
-  <button onclick="actualizarVariableSP()">Actualizar sP</button>
 
   <script>
     const firebaseConfig = {
@@ -37,58 +41,50 @@
     firebase.initializeApp(firebaseConfig);
 
     const database = firebase.database();
-    const registroRef = database.ref('Registro');
+    const datosRef = database.ref('Invernadero/Sensores');
 
-    const ledRef = database.ref('Invernadero/Actuador/Led');
-    const potenciometroRef = database.ref('Invernadero/Sensores/Potenciometro');
-    const variableSPRef = database.ref('Invernadero/Variable/sP');
+    datosRef.on('value', (snapshot) => {
+      const tablaDatos = document.getElementById('tablaDatos');
+      tablaDatos.innerHTML = '';
 
-    ledRef.on('value', (snapshot) => {
-      const estadoLed = snapshot.val();
-      document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
+      snapshot.forEach((childSnapshot) => {
+        const fecha = childSnapshot.key;
+        const potenciometro = childSnapshot.child('Potenciometro').val() || 'N/A';
+        const led = childSnapshot.child('Actuador/Led').val() || 'N/A';
+
+        const fila = `<tr>
+                         <td>${fecha}</td>
+                         <td>${potenciometro}</td>
+                         <td>${led}</td>
+                      </tr>`;
+
+        tablaDatos.innerHTML += fila;
+      });
     });
 
-    potenciometroRef.on('value', (snapshot) => {
-      const valorPotenciometro = snapshot.val();
-      document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
-    });
+    function filtrarPorFecha() {
+      const fechaSeleccionada = document.getElementById('fechaFiltro').value;
+      const tablaDatos = document.getElementById('tablaDatos');
+      tablaDatos.innerHTML = '';
 
-    function actualizarVariableSP() {
-      const nuevoValorSP = document.getElementById('nuevoValorSP').value;
-      variableSPRef.set(parseInt(nuevoValorSP, 10));
+      datosRef.child(fechaSeleccionada).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+          const potenciometro = snapshot.child('Potenciometro').val() || 'N/A';
+          const led = snapshot.child('Actuador/Led').val() || 'N/A';
+
+          const fila = `<tr>
+                           <td>${fechaSeleccionada}</td>
+                           <td>${potenciometro}</td>
+                           <td>${led}</td>
+                        </tr>`;
+
+          tablaDatos.innerHTML += fila;
+        } else {
+          alert('No hay datos disponibles para la fecha seleccionada.');
+        }
+      });
     }
-
-    // Función para obtener la fecha actual en formato ISO
-    function obtenerFechaActual() {
-      const fecha = new Date();
-      return fecha.toISOString();
-    }
-
-    // Función para realizar el registro cada 20 segundos
-    function realizarRegistro() {
-      const fechaActual = obtenerFechaActual();
-
-      // Obtener los valores actuales
-      const estadoLed = document.getElementById('estadoLed').innerText.split(': ')[1];
-      const valorPotenciometro = document.getElementById('valorPotenciometro').innerText.split(': ')[1];
-
-      // Crear un registro con la fecha y los valores
-      const nuevoRegistro = {
-        Fecha: fechaActual,
-        EstadoLed: estadoLed,
-        ValorPotenciometro: valorPotenciometro
-      };
-
-      // Almacenar el registro en la base de datos
-      registroRef.push(nuevoRegistro);
-    }
-
-    // Realizar el registro cada 20 segundos
-    setInterval(realizarRegistro, 20000);
   </script>
-
-  <a href="consulta.html">Consulta</a>
-
 </body>
-
 </html>
+
