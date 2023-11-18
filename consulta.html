@@ -53,9 +53,12 @@
     const tablaDatos = document.getElementById('tablaDatos');
 
     // Cargar datos desde la base de datos al cargar la página
-    datosRef.on('child_added', (snapshot) => {
-      const childData = snapshot.val();
-      actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
+    datosRef.on('value', (snapshot) => {
+      tablaDatos.innerHTML = ""; // Limpiar la tabla antes de volver a cargar los datos
+      snapshot.forEach((childSnapshot) => {
+        const childData = childSnapshot.val();
+        actualizarTabla(childData.fecha, childData.estadoLed, childData.valorPotenciometro);
+      });
     });
 
     function obtenerFechaActual() {
@@ -64,22 +67,11 @@
     }
 
     function actualizarTabla(fecha, estadoLed, valorPotenciometro) {
-      // Verificar si ya existe una fila con la misma fecha
-      const filaExistente = Array.from(tablaDatos.children).find((fila) =>
-        fila.cells[0].innerText === fecha
-      );
-
-      if (filaExistente) {
-        // Actualizar fila existente
-        filaExistente.cells[1].innerText = estadoLed;
-        filaExistente.cells[2].innerText = valorPotenciometro;
-      } else {
-        // Agregar nueva fila
-        const fila = tablaDatos.insertRow();
-        fila.insertCell(0).innerText = fecha;
-        fila.insertCell(1).innerText = estadoLed;
-        fila.insertCell(2).innerText = valorPotenciometro;
-      }
+      // Agregar nueva fila
+      const fila = tablaDatos.insertRow();
+      fila.insertCell(0).innerText = fecha;
+      fila.insertCell(1).innerText = estadoLed;
+      fila.insertCell(2).innerText = valorPotenciometro;
     }
 
     function actualizarVariableSP() {
@@ -132,3 +124,4 @@
 
 </body>
 </html>
+
