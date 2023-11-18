@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control y Registro de Invernadero</title>
+  <!-- Utiliza la versión no modular de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 </head>
 
 <body>
@@ -34,6 +36,27 @@
   </table>
 
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
+      authDomain: "prueba-invernadero.firebaseapp.com",
+      databaseURL: "https://prueba-invernadero-default-rtdb.firebaseio.com",
+      projectId: "prueba-invernadero",
+      storageBucket: "prueba-invernadero.appspot.com",
+      messagingSenderId: "28136162632",
+      appId: "1:28136162632:web:a2693143d9e0075b731f7d"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Reference to the database
+    const database = firebase.database();
+
+    // References to the database nodes
+    const ledRef = database.ref('Invernadero/Actuador/Led');
+    const potenciometroRef = database.ref('Invernadero/Sensores/Potenciometro');
+    const variableSPRef = database.ref('Invernadero/Variable/sP');
     const tablaDatos = document.getElementById('tablaDatos');
 
     function obtenerFechaActual() {
@@ -53,37 +76,27 @@
 
     function actualizarVariableSP() {
       const nuevoValorSP = document.getElementById('nuevoValorSP').value;
-      const fechaActual = obtenerFechaActual();
-      const estadoLed = document.getElementById('estadoLed').innerText.split(': ')[1];
-      const valorPotenciometro = document.getElementById('valorPotenciometro').innerText.split(': ')[1];
-
-      // Actualizar la tabla con los nuevos datos
-      actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
+      variableSPRef.set(parseInt(nuevoValorSP, 10));
     }
 
-    function actualizarDatos(estadoLed, valorPotenciometro) {
-      const fechaActual = obtenerFechaActual();
-
+    // Listen for changes in the LED state
+    ledRef.on('value', (snapshot) => {
+      const estadoLed = snapshot.val();
       document.getElementById('estadoLed').innerText = `Estado del LED: ${estadoLed}`;
+    });
+
+    // Listen for changes in the potentiometer value
+    potenciometroRef.on('value', (snapshot) => {
+      const valorPotenciometro = snapshot.val();
       document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
 
+      // Obtener la fecha actual
+      const fechaActual = obtenerFechaActual();
+
       // Actualizar la tabla con los nuevos datos
-      actualizarTabla(fechaActual, estadoLed, valorPotenciometro);
-    }
-
-    function simularCambioDatos() {
-      // Simular cambios en los datos (puedes reemplazar esto con tus propias funciones)
-      const nuevoEstadoLed = Math.random() > 0.5 ? 'ON' : 'OFF';
-      const nuevoValorPotenciometro = Math.floor(Math.random() * 1024);
-
-      // Actualizar la página con los nuevos datos simulados
-      actualizarDatos(nuevoEstadoLed, nuevoValorPotenciometro);
-    }
-
-    // Simular cambios en los datos cada 20 segundos
-    setInterval(simularCambioDatos, 20000);
+      actualizarTabla(fechaActual, document.getElementById('estadoLed').innerText.split(': ')[1], valorPotenciometro);
+    });
   </script>
 
 </body>
-
 </html>
