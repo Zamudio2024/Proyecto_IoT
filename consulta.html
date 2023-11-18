@@ -59,9 +59,8 @@
 
       snapshot.forEach((childSnapshot) => {
         const fecha = childSnapshot.key;
-        const datos = childSnapshot.val();
-        const potenciometro = datos.Potenciometro || 'N/A';
-        const led = datos.Actuador?.Led || 'N/A';
+        const potenciometro = childSnapshot.child('Potenciometro').val() || 'N/A';
+        const led = childSnapshot.child('Actuador/Led').val() || 'N/A';
 
         const fila = `<tr>
                          <td>${fecha}</td>
@@ -82,9 +81,8 @@
 
       datosRef.child(fechaSeleccionada).once('value', (snapshot) => {
         if (snapshot.exists()) {
-          const datos = snapshot.val();
-          const potenciometro = datos.Potenciometro || 'N/A';
-          const led = datos.Actuador?.Led || 'N/A';
+          const potenciometro = snapshot.child('Potenciometro').val() || 'N/A';
+          const led = snapshot.child('Actuador/Led').val() || 'N/A';
 
           const fila = `<tr>
                            <td>${fechaSeleccionada}</td>
@@ -102,3 +100,4 @@
   </script>
 </body>
 </html>
+
