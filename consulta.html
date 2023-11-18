@@ -50,7 +50,7 @@
     const database = firebase.database();
 
     // Referencia a la ubicación de los datos
-    const datosRef = database.ref('Invernadero/Sensores');
+    const datosRef = database.ref('Invernadero/Sensores/Potenciometro');
 
     // Mostrar datos en la tabla
     datosRef.on('value', (snapshot) => {
