@@ -85,9 +85,6 @@
       </tr>`;
 
       tablaDatos.innerHTML += fila;
-
-      // Guardar datos en localStorage
-      guardarDatosEnLocalStorage();
     }
 
     function actualizarVariableSP() {
@@ -105,12 +102,6 @@
       const valorPotenciometro = snapshot.val();
       document.getElementById('valorPotenciometro').innerText = `Valor del Potenciómetro: ${valorPotenciometro}`;
     });
-
-    // Función para guardar datos en localStorage
-    function guardarDatosEnLocalStorage() {
-      const datosTabla = tablaDatos.innerHTML;
-      localStorage.setItem('datosTabla', datosTabla);
-    }
 
     // Función para consultar por fecha
     function consultarPorFecha() {
@@ -130,4 +121,3 @@
 
 </body>
 </html>
-
