@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Invernadero</title>
+  <!-- Utiliza la versión no modular de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+</head>
+<body>
+
+  <h1>Control de Invernadero</h1>
+
+  <h2>Estado del LED:</h2>
+  <p id="estadoLed">Cargando...</p>
+
+  <h2>Valor del Potenciómetro:</h2>
+  <p id="valorPotenciometro">Cargando...</p>
+
+  <h2>Modificar Variable sP:</h2>
+  <input type="number" id="nuevoValorSP" placeholder="Nuevo valor">
+  <button onclick="actualizarVariableSP()">Actualizar sP</button>
+
+  
+  <a href="consulta.html">consulta</a>
+  <a href="consulta2.html">consulta2</a>
+
+</body>
+<script src="script.js"></script>
+</html>
