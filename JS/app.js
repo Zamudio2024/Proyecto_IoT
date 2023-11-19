@@ -1,4 +1,5 @@
 // Firebase configuration
+
 const firebaseConfig = {
     apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
     authDomain: "prueba-invernadero.firebaseapp.com",
