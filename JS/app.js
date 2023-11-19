@@ -1,13 +1,21 @@
-// Firebase configuration
+// Firebase scripts
+const firebaseScript = document.createElement('script');
+firebaseScript.src = 'https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js';
+document.head.appendChild(firebaseScript);
 
+const databaseScript = document.createElement('script');
+databaseScript.src = 'https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js';
+document.head.appendChild(databaseScript);
+
+// Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
-    authDomain: "prueba-invernadero.firebaseapp.com",
-    databaseURL: "https://prueba-invernadero-default-rtdb.firebaseio.com",
-    projectId: "prueba-invernadero",
-    storageBucket: "prueba-invernadero.appspot.com",
-    messagingSenderId: "28136162632",
-    appId: "1:28136162632:web:a2693143d9e0075b731f7d"
+  apiKey: "AIzaSyA_FUGnhu5nGn3pMul3RWMg9cQOPk6v7lc",
+  authDomain: "prueba-invernadero.firebaseapp.com",
+  databaseURL: "https://prueba-invernadero-default-rtdb.firebaseio.com",
+  projectId: "prueba-invernadero",
+  storageBucket: "prueba-invernadero.appspot.com",
+  messagingSenderId: "28136162632",
+  appId: "1:28136162632:web:a2693143d9e0075b731f7d"
 };
 
 // Initialize Firebase
